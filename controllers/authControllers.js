@@ -23,18 +23,18 @@ module.exports = {
     },
     loginUser: async (req, res) => {
         try {
-            const user = await User.find({ email: req.body.email }) // kiểm tra tồn tại
+            const user = await User.findOne({ email: req.body.email }) // kiểm tra tồn tại duy nhất
             !user && res.status(401).json("Could not find the user")
 
             const descryptionpass = CryptoJS.AES.decrypt(user.password, process.env.SECRET);
             const thepassword = descryptionpass.toString(CryptoJS.enc.Utf8)
-            thepassword !== req.body.password && res.status(401).json("Wrong password")
+            thepassword !== req.body.password && res.status(401).json("Wrong password");
             const userToken = jwt.sign({
                 id: user._id
             },
-                process.env.JWT_SEC, { expiresIn: "21d" }) // Khởi tạo token
+                process.env.JWT_SEC, { expiresIn: "21d" }); // Khởi tạo token, delete session
             const { password, __v, createAt, ...others } = user._doc;
-            res.status(200).json({ ...others, token: userToken })
+            res.status(200).json({ ...others, token: userToken });
         } catch (error) {
             res.status(500).json("Failed to login user account")
 
