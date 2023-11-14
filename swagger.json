@@ -1,0 +1,116 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "AppShoes",
+    "description": "AppShoes - Flutter/NodeJs/Website"
+  },
+  "host": "localhost:3005",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Category",
+      "description": "Category API"
+    }
+  ],
+  "schemes": ["http", "https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/api/category": {
+      "get": {
+        "tags": ["Category"],
+        "summary": "Get All Categories",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Category"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Category"],
+        "summary": "Create Category API",
+        "parameters": [
+          {
+            "name": "categories",
+            "in": "body",
+            "description": "Array of category objects",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ServiceResponse"
+            }
+          }
+        }
+      }
+    },
+    "/api/category/{name}": {
+      "parameters": [
+        {
+          "name": "name",
+          "in": "path",
+          "required": true,
+          "description": "Category name",
+          "type": "string"
+        }
+      ],
+      "delete": {
+        "tags": ["Category"],
+        "summary": "Delete Category API",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ServiceResponse"
+            }
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Category": {
+      "type": "object",
+      "properties": {
+        "_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "ServiceResponse": {
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

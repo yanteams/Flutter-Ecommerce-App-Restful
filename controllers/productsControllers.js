@@ -1,14 +1,79 @@
 const Product = require('../models/Product');
-
+const Category = require('../models/Category');
+const mongoose = require('mongoose');
 module.exports = {
-    createProduct: async (req, res) => {
-        const newProduct = new Product(req.body)
+    getFavorites: async (req, res) => {
         try {
-            await newProduct.save();
-            res.status(200).json("product created");
-        } catch (error) {
+            const userId = req.user.id;
 
-            res.status(500).json("failed to create product");
+            const favorites = await Product.find({ favoriteBy: userId });
+
+            res.status(200).json(favorites);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
+    toggleFavorite: async (req, res) => {
+        try {
+            const product = await Product.findById(req.params.id);
+            if (!product) {
+                return res.status(404).json({ message: 'Product not found' });
+            }
+
+            const userId = req.user.id;
+
+            // Kiểm tra xem người dùng đã favorite sản phẩm chưa
+            const isFavorite = product.favoriteBy.includes(userId);
+
+            if (isFavorite) {
+                // Nếu người dùng đã favorite, xóa người dùng khỏi mảng favoriteBy
+                product.favoriteBy.pull(userId);
+            } else {
+                // Nếu người dùng chưa favorite, thêm người dùng vào mảng favoriteBy
+                product.favoriteBy.push(userId);
+            }
+
+            await product.save();
+            res.status(200).json(product);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
+    createProduct: async (req, res) => {
+        const products = req.body;
+
+        try {
+            const createdProducts = await Promise.all(
+                products.map(async (product) => {
+                    const { name, description, category, details } = product;
+
+                    const existingProduct = await Product.findOne({ name }).populate('category');
+                    if (existingProduct && existingProduct.category.name === category) {
+                        console.log(`Product "${name}" already exists with the same category`);
+                        return null; // Bỏ qua việc tạo sản phẩm mới và trả về null
+                    }
+
+                    const categoryDocument = await Category.findOne({ name: category });
+                    if (!categoryDocument) {
+                        throw new Error(`Category "${category}" not found`);
+                    }
+
+                    const newProduct = await Product.create({
+                        name,
+                        description,
+                        category: categoryDocument._id,
+                        details,
+                    });
+                    return newProduct;
+                })
+            );
+
+            // Lọc bỏ các sản phẩm null trong mảng createdProducts
+            const filteredProducts = createdProducts.filter(product => product !== null);
+
+            res.status(200).json({ message: 'Products created', products: filteredProducts });
+        } catch (error) {
+            res.status(500).json({ message: 'Failed to create products', error: error.message });
         }
     },
     getAllProducts: async (req, res) => {
@@ -50,6 +115,7 @@ module.exports = {
             )
             res.status(200).json(results);
         } catch (error) {
+            res.status(500).json("failed to search product");
 
         }
     }
