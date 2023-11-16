@@ -8,7 +8,24 @@ const userSchema = new mongoose.Schema({
     phone: { type: String, required: true },
     isAdmin: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: false },
-    verificationToken: { type: String, default: null },
+    verificationCode: { type: String, default: null },
+    cart: {
+        type: Array,
+        default: [],
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
+    refreshToken: {
+        type: String,
+    },
+    // address: [{
+    //     type: mongoose.Schema.Types.ObjectId, ref: "Address"
+    // }],
+    // wishlist: [{
+    //     type: mongoose.Schema.Types.ObjectId, ref: "Product"
+    // }],
 }, { timestamps: true }, {
     toJSON: {
         transform: function (doc, ret) {

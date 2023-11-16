@@ -15,7 +15,7 @@ const categorySchema = new mongoose.Schema({
       transform: function (doc, ret) {
         ret.categoryId = ret._id.toString();
         delete ret._id;
-        delete ret._v;
+        delete ret.__v;
       },
     },
   }

@@ -1,18 +1,36 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { MONGO_DB_CONFIG } = require('../config/app.config');
 
-const verifyToken = (req, res, next) => {
-    const authHeader = req.headers.token; // gọi set token
+const verifyToken = async (req, res, next) => {
+    let token;
+    const authHeader = req?.headers?.authorization?.startsWith("Bearer"); // gọi set token
     if (authHeader) {
-        const token = authHeader.split(' ')[1];
-        jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
-            if (err) res.status(403).json('Invalid token');
-            req.user = user;
-            next()
-        })
+        const token = req.headers.authorization.split(' ')[1];
+        try {
+            if (token) {
+                const decoded = jwt.verify(token, MONGO_DB_CONFIG.JWT_SECRET);
+                const user = await User.findById(decoded?.id);
+                req.user = user;
+                next();
+            }
+        } catch (error) {
+            return res.status(403).json({ message: 'Invalid token' })
+
+        }
+
     } else {
         return res.status(401).json({ message: 'you are not authenticated' })
     }
 }
 
-module.exports = { verifyToken };
+const isAdmin = async (req, res, next) => {
+    const { email } = req.user;
+    const adminUser = await User.findOne({ email });
+    if (!adminUser || adminUser.isAdmin !== true) {
+        res.status(500).json({ message: "You are not an admin", data: null });
+    } else {
+        next();
+    }
+}
+module.exports = { verifyToken, isAdmin };

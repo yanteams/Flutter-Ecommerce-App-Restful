@@ -1,20 +1,30 @@
 const categoriesService = require("../services/categories.service");
-exports.create = (req, res, next) => {
-  var model = {
-    categoryName: req.body.name,
-  };
-  categoriesService.createCategory(model, (error, results) => {
-    if (error) {
-      return next(error);
-    } else {
-      return res.status(200).send({
-        message: "Success",
-        data: results,
-      });
-    }
-  });
-};
+  exports.create = (req, res, next) => {
+    var model = {
+      categoryName: req.body.name,
+    };
 
+    categoriesService.getCategoryByName(model.categoryName, (error, category) => {
+      if (error) {
+        return next(error);
+      } else if (category) {
+        return res.status(400).send({
+          message: "Category name already exists",
+        });
+      } else {
+        categoriesService.createCategory(model, (error, results) => {
+          if (error) {
+            return next(error);
+          } else {
+            return res.status(200).send({
+              message: "Success",
+              data: results,
+            });
+          }
+        });
+      }
+    });
+  };
 exports.findAll = (req, res, next) => {
   var model = {
     categoryName: req.query.name,

@@ -16,6 +16,11 @@ exports.createCategory = async (req, res) => {
 
   try {
     for (let i = 0; i < categories.length; i++) {
+      const existingCategory = await Category.findOne({ name: categories[i].name });
+      if (existingCategory) {
+        return res.status(400).json({ error: 'Category name already exists' });
+      }
+
       await Category.create({ name: categories[i].name, description: categories[i].description });
     }
     res.status(200).json({ message: 'Categories created successfully' });
@@ -23,7 +28,6 @@ exports.createCategory = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
 exports.deleteCategory = async (req, res) => {
   const { id } = req.params;
 
